@@ -1,71 +1,82 @@
-import { inject, injectable, multiInject } from "inversify";
+import { inject, injectable, LazyServiceIdentifer, multiInject } from "inversify";
 import { Observable, Subject } from "rxjs";
-import { ILoggerService, IMessageAdapter, ISessionMeta, ISFXSession } from "./interfaces";
+import { IBusinessService, ILoggerService, IMessageAdapter } from "./interfaces/interfaces";
 import { TYPES } from "./types";
 import * as ws from 'ws';
-import { takeUntil } from "rxjs/operators";
+import { filter, map, takeUntil } from "rxjs/operators";
 import { removeLengthHeader } from "../utils/buffer";
-import { EnvelopeRequest } from "../protocol/gateway";
+import gateway, { EnvelopeRequest, EnvelopeResponse, ResponseError } from "../protocol/gateway";
+import { ISFXSession, ISessionMeta, IRequest, IError } from "./interfaces";
+import { env } from "process";
 
 @injectable()
 export class SFXSessionSession implements ISFXSession {
 
-    @inject(TYPES.LoggerService) private loggerService: ILoggerService;
 
-    @multiInject(TYPES.MessageAdapterService) private adapters: Array<IMessageAdapter>;
+    private destroy$ = new Subject<boolean>();
+    private in$ = new Subject<Uint8Array>();
+    private out$ = new Subject<EnvelopeResponse>();
 
-    private connection: [Observable<Uint8Array>, Subject<Uint8Array>];
+    session: ISessionMeta;
 
-    private _info: ISessionMeta;
-
-    private startWsConnection = (in$: Observable<Uint8Array>, out$: Subject<Uint8Array>) => {
-        this.connection = [in$, out$];
-
-        in$.subscribe(c => {
-            // out$.next('Echo response: ' + c);
-            // out$.next('New response');
-        });
+    messages = (type: number): Observable<IRequest> => {
+        return this.in$.pipe(
+            takeUntil(this.destroy$),
+            map(data => EnvelopeRequest.decode(data)),
+            map(envelop => ({
+                id: envelop.requestId,
+                payload: envelop.nestedMessage.value,
+                messageType: envelop.nestedMsgType,
+                type: envelop.requestType
+            })),
+            filter(request => request.messageType === type)
+        );
     }
+
+    send = (request: number, data: Uint8Array): void => this.out$.next(this.createResponse(request, data))
+
+    terminate = (request: number, data: Uint8Array): void => this.out$.next(this.createResponse(request, data, true))
+
+    error = (request: number, error: IError): void => this.out$.next(this.createResponse(request, null, false, error))
+
+    private createResponse = (request: number, data: Uint8Array = null, terminal = false, error: IError = null): EnvelopeResponse => EnvelopeResponse.create({
+            nestedMessage: gateway.google.protobuf.BytesValue.create({ value: data }),
+            requestId: request,
+            responseId: 1,
+            terminal,
+            error: ResponseError.create({
+                errorCode: error.code,
+                errorMessage: gateway.google.protobuf.StringValue.create({ value: error.message }),
+            })
+        })
+
+    connected: boolean;
+
+    @inject(TYPES.LoggerService) private loggerService: ILoggerService;
 
     init(info: ISessionMeta, socket: ws): void {
 
-        this._info = info;
+        this.session = info;
 
-        const destroy$ = new Subject<boolean>();
-        const in$ = new Subject<Uint8Array>();
-        const out$ = new Subject<Uint8Array>();
-
-        out$.subscribe(data => {
+        this.out$.pipe(
+            takeUntil(this.destroy$),
+            map(response => EnvelopeResponse.encode(response).finish())
+        ).subscribe(data => {
             socket.send(data);
         });
 
-        in$.subscribe(message => {
-
-        })
-
         socket.on('message', (msg: ArrayBuffer) => {
 
-            // todo: check for
             const arr = removeLengthHeader(new Uint8Array(msg));
 
-            const envelop = EnvelopeRequest.decode(arr);
-
-            const messageAdapter = this.adapters.find(adapter => adapter.type === envelop.nestedMsgType);
-
-            messageAdapter?.handler({
-                payload: envelop.nestedMessage?.value,
-                session: info,
-                type: envelop.nestedMsgType,
-            })
-
-            in$.next(arr);
+            this.in$.next(arr);
         });
 
         socket.on('close', () => {
             this.loggerService.debug('ws closed');
         });
 
-        this.startWsConnection(in$.pipe(takeUntil(destroy$)), out$);
+        this.connected = true;
     }
 
 }

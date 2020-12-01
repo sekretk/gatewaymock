@@ -1,12 +1,13 @@
 import { injectable } from "inversify";
-import { IMessageAdapter, IRequestMessage } from "../interfaces";
-import { MessageTypes } from "../../protocol/gateway";
+import { ISpotQuoteResponse, MessageTypes, SpotQuoteRequest, SpotQuoteResponse } from "../../protocol/gateway";
+import { GenericAdapter } from "./genericAdapter";
+import { IRequest } from "../interfaces";
 
 @injectable()
-export class SpotPriceAdapter implements IMessageAdapter {
-    type = MessageTypes.SpotQuote;
+export class SpotPriceAdapter extends GenericAdapter<SpotQuoteRequest, ISpotQuoteResponse> {
+    decode = (data: IRequest): SpotQuoteRequest => SpotQuoteRequest.decode(data.payload);
 
-    handler(message: IRequestMessage): void {
+    encode = (message: ISpotQuoteResponse): Uint8Array => SpotQuoteResponse.encode(message).finish();
 
-    }
+    type = () => MessageTypes.SpotQuote;
 }

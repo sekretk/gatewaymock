@@ -1,14 +1,14 @@
 import { injectable } from "inversify";
-import { IMessageAdapter, IRequestMessage } from "../interfaces";
-import { MessageTypes } from "../../protocol/gateway";
+import { FirmsInstrumentsResponse, IFirmsInstrumentsResponse, MessageTypes } from "../../protocol/gateway";
 import { FirmsInstrumentsRequest } from "../../protocol/gateway";
+import { GenericAdapter } from "./genericAdapter";
+import { IRequest } from "../interfaces";
 
 @injectable()
-export class SecurityListAdapter implements IMessageAdapter {
-    type = MessageTypes.FirmsInstruments;
+export class SecurityListAdapter extends GenericAdapter<FirmsInstrumentsRequest, IFirmsInstrumentsResponse> {
+    decode = (data: IRequest): FirmsInstrumentsRequest => FirmsInstrumentsRequest.decode(data.payload);
 
-    handler(message: IRequestMessage): void {
-        const request = FirmsInstrumentsRequest.decode(message.payload);
-        console.log(request.toJSON());
-    }
+    encode = (message: IFirmsInstrumentsResponse): Uint8Array => FirmsInstrumentsResponse.encode(message).finish();
+
+    type = () => MessageTypes.FirmsInstruments;
 }

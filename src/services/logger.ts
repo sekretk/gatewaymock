@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable } from "inversify";
-import { ILoggerService } from "./interfaces";
+import { ILoggerService } from "./interfaces/interfaces";
 import pino from 'pino';
 
 @injectable()
@@ -14,6 +14,10 @@ export class LoggerService implements ILoggerService {
 
     info(message: string): void {
         this._logger.info(message);
+    }
+
+    error(message: string): void {
+        this._logger.error(message);
     }
 
     logger = () => this._logger;

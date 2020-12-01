@@ -4,7 +4,17 @@ const TYPES = {
     AppService: Symbol.for("AppService"),
     MiddleService: Symbol.for("MiddleService"),
     SessionService: Symbol.for("SessionService"),
-    MessageAdapterService: Symbol.for("MessageAdapterService")
+    BusinessService: Symbol.for("BusinessService"),
 };
 
-export { TYPES };
+const ADAPTERS = {
+    SecurityListAdapter: Symbol.for("SecurityListAdapter"),
+    SpotQuoteAdapter: Symbol.for("SpotQuoteAdapter"),
+};
+
+const BUSINESS_SERVICE = {
+    FirmsInstrumentsService: Symbol.for("FirmsInstrumentsService"),
+    SpotQuotesService: Symbol.for("SpotQuotesService"),
+};
+
+export { TYPES, ADAPTERS, BUSINESS_SERVICE };

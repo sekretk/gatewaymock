@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable } from "inversify";
-import { IAuthService } from "./interfaces";
+import { IAuthService } from "./interfaces/interfaces";
 import { v4 as uuidv4 } from 'uuid';
 
 @injectable()

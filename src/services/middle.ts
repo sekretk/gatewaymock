@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { inject, injectable } from "inversify";
-import { ILoggerService, IMiddleService } from "./interfaces";
+import { ILoggerService, IMiddleService } from "./interfaces/interfaces";
 import { RequestHandler } from "express";
 import { TYPES } from "./types";
 

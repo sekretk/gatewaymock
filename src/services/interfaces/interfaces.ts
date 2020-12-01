@@ -1,11 +1,13 @@
 import { RequestHandler } from "express";
 import { WebsocketRequestHandler } from "express-ws";
 import pino from 'pino';
-import * as ws from 'ws';
+import { Observable } from "rxjs";
+
 
 export interface ILoggerService {
     debug(message: string): void;
     info(message: string): void;
+    error(message: string): void;
     logger(): pino.Logger;
 }
 
@@ -30,23 +32,17 @@ export interface IAppService {
     start: () => void;
 }
 
-export interface ISessionMeta {
-    user: string;
-    token: string;
-    contract: string;
+
+export interface IMessageAdapter<Tin, Tout> {
+    type(): number;
+    send(request: number, message: Tout): void;
+    messages(): Observable<Tin>;
 }
 
-export interface ISFXSession {
-    init(info: ISessionMeta, ws: ws): void;
+export interface IBusinessService {
+    start(): void;
 }
 
-export interface IRequestMessage {
-    session: ISessionMeta;
-    type: number;
-    payload: Uint8Array;
-}
-
-export interface IMessageAdapter {
-    type: number;
-    handler(message: IRequestMessage): void;
+export interface ISessionInit {
+    init(): void;
 }

@@ -1,12 +1,11 @@
 import "reflect-metadata";
 import { inject, injectable } from "inversify";
-import { IAppService, IAuthCred, IAuthService, ILoggerService, ISFXSession } from "./interfaces";
+import { IAppService, IAuthCred, IAuthService, IBusinessService, ILoggerService, ISessionInit } from "./interfaces/interfaces";
 import { TYPES } from "./types";
 import { RequestHandler } from "express";
 import { WebsocketRequestHandler } from "express-ws";
-import { Observable, Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
-import { container } from "../inversify.config";
+import { containerFactory } from "../inversify.config";
+import { ISFXSession } from "./interfaces";
 
 @injectable()
 export class AppService implements IAppService {
@@ -14,10 +13,7 @@ export class AppService implements IAppService {
     @inject(TYPES.LoggerService) private loggerService: ILoggerService;
     @inject(TYPES.AuthService) private authService: IAuthService;
 
-    private sessions = new Array<ISFXSession>();
-
     auth: RequestHandler<any, any, IAuthCred, any> = (req, res): void => {
-        // validateBody
         res.send({ token: this.authService.login(req.body.user) });
     }
 
@@ -43,17 +39,25 @@ export class AppService implements IAppService {
             return;
         }
 
-        const newSession = container.get<ISFXSession>(TYPES.SessionService);
+        try {
 
-        newSession.init({
-            contract: req.query.contract,
-            token: req.query.token as string,
-            user
-        }, ws);
+            const container = containerFactory();
 
+            const newSession = container.get<ISFXSession>(TYPES.SessionService);
 
+            const services = container.getAll<IBusinessService>(TYPES.BusinessService);
 
+            newSession.init({
+                contract: req.query.contract,
+                token: req.query.token as string,
+                user
+            }, ws);
 
+            services.forEach(service => service.start());
+
+        } catch (error) {
+            this.loggerService.error(error);
+        }
     }
 
     start = (): void => this.loggerService.info(`server started at http://localhost:${process.env.PORT}`);

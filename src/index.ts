@@ -1,19 +1,18 @@
 import express from 'express';
-import { container } from "./inversify.config";
+import { mainContainer } from "./inversify.config";
 import { TYPES } from './services/types';
 import expressws from 'express-ws';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-
 import expressPino from 'express-pino-logger';
-import { IAppService, ILoggerService, IMiddleService } from './services/interfaces';
+import { IAppService, ILoggerService, IMiddleService } from './services/interfaces/interfaces';
 
 dotenv.config();
 
-const appService = container.get<IAppService>(TYPES.AppService);
-const loggerService = container.get<ILoggerService>(TYPES.LoggerService);
-const middleServices = container.getAll<IMiddleService>(TYPES.MiddleService);
+const appService = mainContainer.get<IAppService>(TYPES.AppService);
+const loggerService = mainContainer.get<ILoggerService>(TYPES.LoggerService);
+const middleServices = mainContainer.getAll<IMiddleService>(TYPES.MiddleService);
 
 expressws(express()).app
     // Setup logger
