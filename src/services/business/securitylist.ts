@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { IFirm, IFirmInstrumentInfo, InstrumentType } from "../../protocol/gateway";
-import { IBusinessService, IFirmsAndInstrumentsService, ISecurityListAdapter } from "../interfaces";
-import { ADAPTERS } from "../types";
+import { IBusinessService, IFirmsAndInstrumentsService, ILoggerService, ISecurityListAdapter } from "../interfaces";
+import { ADAPTERS, TYPES } from "../types";
 
 export const RAW_INSTRUMENT_EURUSD_01: IFirmInstrumentInfo = {
     Symbol: 'USDJPY',
@@ -54,12 +54,14 @@ export class SecurityListService implements IFirmsAndInstrumentsService, IBusine
 
     @inject(ADAPTERS.SecurityListAdapter) private adapter: ISecurityListAdapter;
 
+    @inject(TYPES.LoggerService) private loggerService: ILoggerService;
+
     start(): void {
-        console.log('SecuritList Started');
+        this.loggerService.info('SecuritList Started');
 
         this.adapter.messages().subscribe(request => {
-            console.log('[SecurityListService] GET: ' + JSON.stringify(request));
-            this.adapter.send(111, {
+            this.loggerService.info('[SecurityListService] GET: ' + JSON.stringify(request));
+            this.adapter.send(request.id, {
                 Firms: ARRAY_OF_RAW_CLIENTS_01
             });
         });

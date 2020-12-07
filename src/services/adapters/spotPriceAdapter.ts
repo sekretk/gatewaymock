@@ -5,7 +5,7 @@ import { IRequest } from "../interfaces";
 
 @injectable()
 export class SpotPriceAdapter extends GenericAdapter<SpotQuoteRequest, ISpotQuoteResponse> {
-    decode = (data: IRequest): SpotQuoteRequest => SpotQuoteRequest.decode(data.payload);
+    decode = (data: Uint8Array): SpotQuoteRequest => SpotQuoteRequest.decode(data);
 
     encode = (message: ISpotQuoteResponse): Uint8Array => SpotQuoteResponse.encode(message).finish();
 

@@ -1,11 +1,11 @@
 import "reflect-metadata";
-import { inject, injectable } from "inversify";
-import { IAppService, IAuthCred, IAuthService, IBusinessService, ILoggerService, ISessionInit } from "./interfaces/interfaces";
+import { Container, inject, injectable } from "inversify";
+import { IAppService, IAuthCred, IAuthService, IBusinessService } from "./interfaces/interfaces";
 import { TYPES } from "./types";
 import { RequestHandler } from "express";
 import { WebsocketRequestHandler } from "express-ws";
 import { containerFactory } from "../inversify.config";
-import { ISFXSession } from "./interfaces";
+import { ILoggerService, ISessionMeta, ISFXSession } from "./interfaces";
 
 @injectable()
 export class AppService implements IAppService {
@@ -13,15 +13,30 @@ export class AppService implements IAppService {
     @inject(TYPES.LoggerService) private loggerService: ILoggerService;
     @inject(TYPES.AuthService) private authService: IAuthService;
 
+    private sessions = new Map<ISessionMeta, Container>();
+
+    constructor() {
+        process.openStdin().addListener("data", value =>  {
+            const text = value.toString().trim();
+
+            if (text === 'sessions') {
+                console.log('Alive session: ' + Array.from(this.sessions.keys()).map(x => x.user).join(' - '));
+            }
+            else {
+                console.log('Unknown command');
+            }
+          });
+    }
+
     auth: RequestHandler<any, any, IAuthCred, any> = (req, res): void => {
-        res.send({ token: this.authService.login(req.body.user) });
+        res.send({ token: this.authService.login(req.body) });
     }
 
     ws: WebsocketRequestHandler = (ws, req) => {
 
         this.loggerService.debug(`WS connection contract:  + ${req.query.contract}; token: ${req.query.token}`);
 
-        if (req.query.contract !== '0.3.7') {
+        if (req.query.contract !== process.env.CONTRACT) {
             this.loggerService.debug('contract incompatible');
             this.loggerService.debug('ws opened');
             ws.send('contract incompatible');
@@ -29,9 +44,9 @@ export class AppService implements IAppService {
             return;
         }
 
-        const user = this.authService.validate(req.query.token as string);
+        const session = this.authService.validate(req.query.token as string);
 
-        if (!Boolean(user)) {
+        if (!Boolean(session.user)) {
             this.loggerService.debug('not autheniticated for token: ' + req.query.token);
             this.loggerService.debug('ws opened');
             ws.send(`not autheniticated for token: ${req.query.token}`);
@@ -41,22 +56,24 @@ export class AppService implements IAppService {
 
         try {
 
-            const container = containerFactory();
+            const container = containerFactory(session);
 
             const newSession = container.get<ISFXSession>(TYPES.SessionService);
 
             const services = container.getAll<IBusinessService>(TYPES.BusinessService);
 
-            newSession.init({
-                contract: req.query.contract,
-                token: req.query.token as string,
-                user
-            }, ws);
+            newSession.init(session, ws);
 
             services.forEach(service => service.start());
 
+            this.sessions.set(session, container);
+
+            ws.on('close', () => {
+                this.sessions.delete(session);
+            });
         } catch (error) {
             this.loggerService.error(error);
+            ws.close();
         }
     }
 

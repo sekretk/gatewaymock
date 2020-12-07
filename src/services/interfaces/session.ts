@@ -1,11 +1,11 @@
 import { Observable } from 'rxjs';
 import * as ws from 'ws';
+import { IAuthCred } from '.';
 import { RequestType } from '../../protocol/gateway';
 
-export interface ISessionMeta {
-    user: string;
+export interface ISessionMeta extends IAuthCred {
     token: string;
-    contract: string;
+    hash: string;
 }
 
 export interface IRequest<T> {

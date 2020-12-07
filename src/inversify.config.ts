@@ -1,27 +1,35 @@
 import { Container } from "inversify";
 import { ADAPTERS, BUSINESS_SERVICE, TYPES } from "./services/types";
-import { IAuthService, IAppService, ILoggerService, IMiddleService, IMessageAdapter, IBusinessService, ISessionInit } from "./services/interfaces/interfaces";
+import { IAuthService, IAppService, IMiddleService, IMessageAdapter, IBusinessService } from "./services/interfaces/interfaces";
 import { AuthService } from "./services/auth";
 import { AppService } from "./services/app";
 import { LoggerService } from "./services/logger";
 import { MiddleService } from "./services/middle";
 import { SFXSessionSession } from "./services/session";
-import { IFirmsAndInstrumentsService, ISecurityListAdapter, ISFXSession, ISpotPriceAdapter, ISpotQuotesService } from "./services/interfaces";
+import { IFirmsAndInstrumentsService, ILoggerService, ISecurityListAdapter, ISessionMeta, ISFXSession, ISpotPriceAdapter, ISpotQuotesService } from "./services/interfaces";
 import { SecurityListAdapter } from "./services/adapters/securityListAdapter";
 import { SpotPriceAdapter } from "./services/adapters/spotPriceAdapter";
 import { SecurityListService } from "./services/business/securitylist";
 import { SpotQuotesService } from "./services/business/spotPrice";
 
-function containerFactory(): Container {
+const mainContainer = new Container({
+    defaultScope: 'Singleton',
+});
+
+mainContainer.bind<IAppService>(TYPES.AppService).to(AppService);
+
+mainContainer.bind<IAuthService>(TYPES.AuthService).to(AuthService);
+
+mainContainer.bind<IMiddleService>(TYPES.MiddleService).to(MiddleService);
+
+mainContainer.bind<ILoggerService>(TYPES.LoggerService).toConstantValue(new LoggerService());
+
+function containerFactory(session: ISessionMeta): Container {
     const container = new Container({
         defaultScope: 'Singleton',
     });
 
-    container.bind<IAuthService>(TYPES.AuthService).to(AuthService);
-    container.bind<IAppService>(TYPES.AppService).to(AppService);
-    container.bind<ILoggerService>(TYPES.LoggerService).to(LoggerService);
-    container.bind<IMiddleService>(TYPES.MiddleService).to(MiddleService);
-
+    container.bind<ILoggerService>(TYPES.LoggerService).toConstantValue(new LoggerService(session));
     container.bind<ISFXSession>(TYPES.SessionService).to(SFXSessionSession).inSingletonScope();
 
     container.bind<ISecurityListAdapter>(ADAPTERS.SecurityListAdapter).to(SecurityListAdapter);
@@ -38,7 +46,5 @@ function containerFactory(): Container {
 
     return container;
 }
-
-const mainContainer: Container = containerFactory();
 
 export { mainContainer, containerFactory };

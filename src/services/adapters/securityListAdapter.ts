@@ -6,7 +6,7 @@ import { IRequest } from "../interfaces";
 
 @injectable()
 export class SecurityListAdapter extends GenericAdapter<FirmsInstrumentsRequest, IFirmsInstrumentsResponse> {
-    decode = (data: IRequest): FirmsInstrumentsRequest => FirmsInstrumentsRequest.decode(data.payload);
+    decode = (): FirmsInstrumentsRequest => new FirmsInstrumentsRequest();
 
     encode = (message: IFirmsInstrumentsResponse): Uint8Array => FirmsInstrumentsResponse.encode(message).finish();
 

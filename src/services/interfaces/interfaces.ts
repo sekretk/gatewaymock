@@ -1,20 +1,12 @@
 import { RequestHandler } from "express";
 import { WebsocketRequestHandler } from "express-ws";
-import pino from 'pino';
 import { Observable } from "rxjs";
-
-
-export interface ILoggerService {
-    debug(message: string): void;
-    info(message: string): void;
-    error(message: string): void;
-    logger(): pino.Logger;
-}
+import { IRequest, ISessionMeta } from ".";
 
 export interface IAuthService {
-    validate(token: string): string | undefined;
+    validate(token: string): ISessionMeta | undefined;
     redeem(token: string): void;
-    login(user: string): string;
+    login(creds: IAuthCred): string;
 }
 
 export interface IMiddleService {
@@ -24,6 +16,7 @@ export interface IMiddleService {
 export interface IAuthCred {
     user: string;
     password: string;
+    hash: string;
 }
 
 export interface IAppService {
@@ -36,7 +29,7 @@ export interface IAppService {
 export interface IMessageAdapter<Tin, Tout> {
     type(): number;
     send(request: number, message: Tout): void;
-    messages(): Observable<Tin>;
+    messages(): Observable<IRequest<Tin>>;
 }
 
 export interface IBusinessService {

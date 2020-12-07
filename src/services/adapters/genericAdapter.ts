@@ -7,7 +7,7 @@ import { TYPES } from "../types";
 @injectable()
 export abstract class GenericAdapter<Tin, Tout> implements IMessageAdapter<Tin, Tout> {
 
-    abstract decode(request: IRequest<Uint8Array>): Tin;
+    abstract decode(request: Uint8Array): Tin;
 
     abstract encode(message: Tout): Uint8Array;
 
@@ -15,12 +15,12 @@ export abstract class GenericAdapter<Tin, Tout> implements IMessageAdapter<Tin, 
 
     @inject(TYPES.SessionService) private sessionService: ISFXSession;
 
-    send(request: number, message: Tout): void {
-        this.sessionService.send(request, this.encode(message));
-    }
+    send = (request: number, message: Tout): void => this.sessionService.send(request, this.encode(message));
 
-    messages(): Observable<Tin> {
-        return this.sessionService.messages(this.type()).pipe(map(request => this.decode(request)));
-    }
+    messages = (): Observable<IRequest<Tin>> => this.sessionService.messages(this.type()).pipe(map(this.transformRequest));
 
+    private transformRequest = (request: IRequest<Uint8Array>): IRequest<Tin> => ({
+        ...request,
+        payload: this.decode(request.payload)
+    })
 }

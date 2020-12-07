@@ -1,20 +1,20 @@
 import "reflect-metadata";
 import { injectable } from "inversify";
 import { IAuthService } from "./interfaces/interfaces";
-import { v4 as uuidv4 } from 'uuid';
+import { IAuthCred, ISessionMeta } from "./interfaces";
 
 @injectable()
 export class AuthService implements IAuthService {
 
-    private _logins = new Map<string, string>();
+    private _logins = new Map<string, ISessionMeta>();
 
     validate = (token: string) => this._logins.get(token);
 
     redeem = (token: string) => this._logins.delete(token);
 
-    login(user: string): string {
-        const token = uuidv4();
-        this._logins.set(token, user);
+    login(creds: IAuthCred): string {
+        const token = (Math.floor(Math.random() * 10000)).toString(36).toUpperCase();
+        this._logins.set(token, {...creds, token});
         return token;
     }
 }

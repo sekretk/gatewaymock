@@ -6,7 +6,8 @@ import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import expressPino from 'express-pino-logger';
-import { IAppService, ILoggerService, IMiddleService } from './services/interfaces/interfaces';
+import { IAppService, IMiddleService } from './services/interfaces/interfaces';
+import { ILoggerService } from './services/interfaces';
 
 dotenv.config();
 
