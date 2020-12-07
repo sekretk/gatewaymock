@@ -1,6 +1,14 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-import $protobuf from "protobufjs/minimal";
+(function(global, factory) { /* global define, require, module */
 
+    /* AMD */ if (typeof define === 'function' && define.amd)
+        define(["protobufjs/minimal"], factory);
+
+    /* CommonJS */ else if (typeof require === 'function' && typeof module === 'object' && module && module.exports)
+        module.exports = factory(require("protobufjs/minimal"));
+
+})(this, function($protobuf) {
+    "use strict";
 // Common aliases
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
@@ -8915,11 +8923,11 @@ $root.SpotQuoteResponse = (function() {
         if (!writer)
             writer = $Writer.create();
         if (message.askPrice != null && Object.hasOwnProperty.call(message, "askPrice"))
-            writer.uint32(/* id 1, wireType 5 =*/13).float(message.askPrice);
+            writer.uint32(/* id 1, wireType 1 =*/9).double(message.askPrice);
         if (message.askTobAmount != null && Object.hasOwnProperty.call(message, "askTobAmount"))
             writer.uint32(/* id 2, wireType 1 =*/17).double(message.askTobAmount);
         if (message.bidPrice != null && Object.hasOwnProperty.call(message, "bidPrice"))
-            writer.uint32(/* id 3, wireType 5 =*/29).float(message.bidPrice);
+            writer.uint32(/* id 3, wireType 1 =*/25).double(message.bidPrice);
         if (message.bidTobAmount != null && Object.hasOwnProperty.call(message, "bidTobAmount"))
             writer.uint32(/* id 4, wireType 1 =*/33).double(message.bidTobAmount);
         return writer;
@@ -8957,13 +8965,13 @@ $root.SpotQuoteResponse = (function() {
             var tag = reader.uint32();
             switch (tag >>> 3) {
             case 1:
-                message.askPrice = reader.float();
+                message.askPrice = reader.double();
                 break;
             case 2:
                 message.askTobAmount = reader.double();
                 break;
             case 3:
-                message.bidPrice = reader.float();
+                message.bidPrice = reader.double();
                 break;
             case 4:
                 message.bidTobAmount = reader.double();
@@ -9733,4 +9741,5 @@ $root.Tenor = (function() {
     return Tenor;
 })();
 
-export { $root as default };
+    return $root;
+});
