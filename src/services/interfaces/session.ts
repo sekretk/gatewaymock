@@ -20,9 +20,13 @@ export interface IError {
     code: number;
 }
 
-export interface ISFXSession {
+export interface ISession {
     init(info: ISessionMeta, ws: ws): void;
     session: ISessionMeta;
+    close(): void;
+}
+
+export interface ITransfer {
     messages(type: number): Observable<IRequest<Uint8Array>>;
     send: (request: number, data: Uint8Array) => void;
     terminate: (request: number, data: Uint8Array) => void;

@@ -4,6 +4,7 @@ const TYPES = {
     AppService: Symbol.for("AppService"),
     MiddleService: Symbol.for("MiddleService"),
     SessionService: Symbol.for("SessionService"),
+    TransferService: Symbol.for("TransferService"),
     BusinessService: Symbol.for("BusinessService"),
 };
 

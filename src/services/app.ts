@@ -5,7 +5,7 @@ import { TYPES } from "./types";
 import { RequestHandler } from "express";
 import { WebsocketRequestHandler } from "express-ws";
 import { containerFactory } from "../inversify.config";
-import { ILoggerService, ISessionMeta, ISFXSession } from "./interfaces";
+import { ILoggerService, ISession, ISessionMeta } from "./interfaces";
 
 @injectable()
 export class AppService implements IAppService {
@@ -58,7 +58,7 @@ export class AppService implements IAppService {
 
             const container = containerFactory(session);
 
-            const newSession = container.get<ISFXSession>(TYPES.SessionService);
+            const newSession = container.get<ISession>(TYPES.SessionService);
 
             const services = container.getAll<IBusinessService>(TYPES.BusinessService);
 

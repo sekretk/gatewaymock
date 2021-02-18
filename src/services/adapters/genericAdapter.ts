@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { IMessageAdapter, IRequest, ISFXSession } from "../interfaces";
+import { IMessageAdapter, IRequest, ITransfer } from "../interfaces";
 import { TYPES } from "../types";
 
 @injectable()
@@ -13,7 +13,7 @@ export abstract class GenericAdapter<Tin, Tout> implements IMessageAdapter<Tin, 
 
     abstract type(): number;
 
-    @inject(TYPES.SessionService) private sessionService: ISFXSession;
+    @inject(TYPES.SessionService) private sessionService: ITransfer;
 
     send = (request: number, message: Tout): void => this.sessionService.send(request, this.encode(message));
 

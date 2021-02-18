@@ -5,11 +5,15 @@ import * as ws from 'ws';
 import { filter, map, takeUntil } from "rxjs/operators";
 import { removeLengthHeader } from "../utils/buffer";
 import gateway, { EnvelopeRequest, EnvelopeResponse, ResponseError } from "../protocol/gateway";
-import { ISFXSession, ISessionMeta, IRequest, IError, ILoggerService } from "./interfaces";
+import { ISessionMeta, IRequest, IError, ILoggerService, ITransfer, ISession } from "./interfaces";
 
 @injectable()
-export class SFXSessionSession implements ISFXSession {
+export class SFXSessionSession implements ISession, ITransfer {
+    private socket: ws;
 
+    close(): void {
+        this.socket.close();
+    }
 
     private destroy$ = new Subject<boolean>();
     private in$ = new Subject<Uint8Array>();
@@ -51,6 +55,8 @@ export class SFXSessionSession implements ISFXSession {
     @inject(TYPES.LoggerService) private loggerService: ILoggerService;
 
     init(info: ISessionMeta, socket: ws): void {
+
+        this.socket = socket;
 
         this.session = info;
 

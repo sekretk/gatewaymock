@@ -6,7 +6,7 @@ import { AppService } from "./services/app";
 import { LoggerService } from "./services/logger";
 import { MiddleService } from "./services/middle";
 import { SFXSessionSession } from "./services/session";
-import { IFirmsAndInstrumentsService, ILoggerService, ISecurityListAdapter, ISessionMeta, ISFXSession, ISpotPriceAdapter, ISpotQuotesService } from "./services/interfaces";
+import { IFirmsAndInstrumentsService, ILoggerService, ISecurityListAdapter, ISession, ISessionMeta, ISpotPriceAdapter, ISpotQuotesService, ITransfer } from "./services/interfaces";
 import { SecurityListAdapter } from "./services/adapters/securityListAdapter";
 import { SpotPriceAdapter } from "./services/adapters/spotPriceAdapter";
 import { SecurityListService } from "./services/business/securitylist";
@@ -30,7 +30,9 @@ function containerFactory(session: ISessionMeta): Container {
     });
 
     container.bind<ILoggerService>(TYPES.LoggerService).toConstantValue(new LoggerService(session));
-    container.bind<ISFXSession>(TYPES.SessionService).to(SFXSessionSession).inSingletonScope();
+    container.bind<ISession>(SFXSessionSession).toSelf().inSingletonScope();
+    container.bind<ISession>(TYPES.SessionService).toService(SFXSessionSession);
+    container.bind<ITransfer>(TYPES.TransferService).toService(SFXSessionSession);
 
     container.bind<ISecurityListAdapter>(ADAPTERS.SecurityListAdapter).to(SecurityListAdapter);
     container.bind<ISpotPriceAdapter>(ADAPTERS.SpotQuoteAdapter).to(SpotPriceAdapter);
